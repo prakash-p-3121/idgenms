@@ -14,21 +14,21 @@ type IDGenRepositoryImpl struct {
 }
 
 func (repositoryImpl *IDGenRepositoryImpl) NextIDGet(ctx context.Context,
-	tableName string) ([]byte, error) {
+	tableName string) (string, int, error) {
 	tx, err := databaseInst.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return "", 0, err
 	}
-	nextID, err := repositoryImpl.nextIDGetWithRetries(tx, ctx, tableName, 0)
+	nextID, bitCount, err := repositoryImpl.nextIDGetWithRetries(tx, ctx, tableName, 0)
 	if err != nil {
-		return nil, mysqllib.RollbackTx(tx, err)
+		return "", 0, mysqllib.RollbackTx(tx, err)
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return nil, mysqllib.RollbackTx(tx, err)
+		return "", 0, mysqllib.RollbackTx(tx, err)
 	}
-	return nextID, nil
+	return new(big.Int).SetBytes(nextID).String(), bitCount, nil
 }
 
 /*
@@ -47,9 +47,9 @@ const (
 func (repositoryImpl *IDGenRepositoryImpl) nextIDGetWithRetries(tx *sql.Tx,
 	ctx context.Context,
 	tableName string,
-	retryCount uint8) ([]byte, error) {
+	retryCount uint8) ([]byte, int, error) {
 	if retryCount > maxRetries {
-		return nil, errorlib.NewInternalServerError("retries-exceeded-for-table=" + tableName)
+		return nil, 0, errorlib.NewInternalServerError("retries-exceeded-for-table=" + tableName)
 	}
 	qry := "SELECT id FROM id_generator WHERE table_name = ? FOR UPDATE;"
 	row := tx.QueryRowContext(ctx, qry, tableName)
@@ -60,24 +60,25 @@ func (repositoryImpl *IDGenRepositoryImpl) nextIDGetWithRetries(tx *sql.Tx,
 		return repositoryImpl.insertID(tx, ctx, tableName, retryCount)
 	}
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	nextIDBytes := getNextID(idBytes)
+	nextIDBytes, bitCount := getNextID(idBytes)
 	err = repositoryImpl.updateNextID(tx, ctx, tableName, nextIDBytes)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	return nextIDBytes, nil
+	return nextIDBytes, bitCount, nil
 }
 
 func (repositoryImpl *IDGenRepositoryImpl) insertID(tx *sql.Tx,
 	ctx context.Context,
 	tableName string,
-	retryCount uint8) ([]byte, error) {
+	retryCount uint8) ([]byte, int, error) {
 	id := new(big.Int)
-	id = id.SetInt64(1)
-	newID := id.Bytes()
+	id = id.SetInt64(0)
+
+	newID, bitCount := getNextID(id.Bytes())
 	qry := `INSERT INTO id_generator (table_name, id) 
 			VALUES (?, ?);
 			`
@@ -88,16 +89,16 @@ func (repositoryImpl *IDGenRepositoryImpl) insertID(tx *sql.Tx,
 		return repositoryImpl.nextIDGetWithRetries(tx, ctx, tableName, retryCount+1)
 	}
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	affRows, err := result.RowsAffected()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	if affRows != 1 {
-		return nil, errors.New("rows-affected!=1")
+		return nil, 0, errors.New("rows-affected!=1")
 	}
-	return newID, nil
+	return newID, bitCount, nil
 }
 
 func (repositoryImpl *IDGenRepositoryImpl) updateNextID(tx *sql.Tx,

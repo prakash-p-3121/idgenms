@@ -1,0 +1,1 @@
+ migrate -source file://migrations/ -database "mysql://root:root@tcp(localhost:3306)/idgen" down 2

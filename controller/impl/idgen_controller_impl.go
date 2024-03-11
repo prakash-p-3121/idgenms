@@ -30,6 +30,7 @@ func (controller *IDGenControllerImpl) NextID(restCtx restlib.RestContext) {
 	resp, appErr := idGenService.NextID(req)
 	if err != nil {
 		appErr.SendRestResponse(ctx)
+		return
 	}
 	restlib.OkResponse(ctx, resp)
 }

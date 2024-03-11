@@ -5,6 +5,7 @@ import (
 	"github.com/prakash-p-3121/errorlib"
 	"github.com/prakash-p-3121/idgenmodel"
 	"github.com/prakash-p-3121/idgenms/repository"
+	"log"
 )
 
 type IDGenServiceImpl struct {
@@ -16,13 +17,16 @@ func (service *IDGenServiceImpl) NextID(req *idgenmodel.IDGenReq) (*idgenmodel.I
 	if appErr != nil {
 		return nil, appErr
 	}
+	log.Println("req=%d", *req.TableName)
 	idGenRepo := repository.NewIDGenRepository()
-	nextIDBytes, err := idGenRepo.NextIDGet(service.Ctx.Request.Context(), *req.TableName)
+	nextIDStr, bitCount, err := idGenRepo.NextIDGet(service.Ctx.Request.Context(), *req.TableName)
 	if err != nil {
+		log.Println("err=" + err.Error())
 		return nil, errorlib.NewInternalServerError(err.Error())
 	}
+	log.Println(nextIDStr)
 	return &idgenmodel.IDGenResp{
-		ID:       nextIDBytes,
-		BitCount: int64(len(nextIDBytes)),
+		ID:       nextIDStr,
+		BitCount: int64(bitCount),
 	}, nil
 }

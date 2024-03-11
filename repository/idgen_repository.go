@@ -3,5 +3,5 @@ package repository
 import "context"
 
 type IDGenRepository interface {
-	NextIDGet(ctx context.Context, tableName string) ([]byte, error)
+	NextIDGet(ctx context.Context, tableName string) (string, int, error)
 }

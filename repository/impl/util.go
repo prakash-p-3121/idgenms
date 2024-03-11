@@ -1,8 +1,12 @@
 package impl
 
-import "math/big"
+import (
+	"fmt"
+	"log"
+	"math/big"
+)
 
-func getNextID(idBytes []byte) []byte {
+func getNextID(idBytes []byte) ([]byte, int) {
 
 	lastIDBigInt := new(big.Int)
 	lastIDBigInt = lastIDBigInt.SetBytes(idBytes)
@@ -11,5 +15,7 @@ func getNextID(idBytes []byte) []byte {
 	addBigInt = addBigInt.SetUint64(1)
 
 	nextIDBigInt := lastIDBigInt.Add(lastIDBigInt, addBigInt)
-	return nextIDBigInt.Bytes()
+	log.Println(nextIDBigInt.String())
+	binaryString := fmt.Sprintf("%b", nextIDBigInt)
+	return nextIDBigInt.Bytes(), len(binaryString)
 }

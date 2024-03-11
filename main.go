@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	databaseInst, err := mysqllib.CreateDatabaseConnection("conf/database.toml")
+	databaseInst, err := mysqllib.CreateDatabaseConnectionWithRetry("conf/database.toml")
 	if err != nil {
 		panic(err)
 	}
