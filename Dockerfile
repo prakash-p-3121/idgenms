@@ -18,6 +18,7 @@ WORKDIR /app
 RUN mkdir /app/conf
 # Copy binary and conf files
 COPY --from=builder /app/idgenms /app/idgenms
+RUN chmod 777 /app/idgenms
 COPY --from=builder /app/conf/database.toml /app/conf/database.toml
 
 
@@ -27,4 +28,4 @@ EXPOSE 3001
 
 
 # Define the command to run the application
-CMD ["idgenms"]
+CMD ["/app/idgenms"]
