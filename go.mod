@@ -4,15 +4,15 @@ go 1.18
 
 require (
 	github.com/gin-gonic/gin v1.9.1
-	github.com/prakash-p-3121/errorlib v0.0.7
+	github.com/prakash-p-3121/errorlib v0.0.8
 	github.com/prakash-p-3121/idgenmodel v0.0.3
 	github.com/prakash-p-3121/mysqllib v0.0.12
-	github.com/prakash-p-3121/restlib v0.0.4
+	github.com/prakash-p-3121/restlib v0.0.9
 )
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/bytedance/sonic v1.11.2 // indirect
+	github.com/bytedance/sonic v1.11.3 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
